@@ -116,18 +116,18 @@ jobs:
         run: |
           set +e
           auth=(--header "Authorization: Bearer ${REGISTRY_TOKEN}" --header "Accept: application/vnd.github+json")
-          echo "LIST_USER"
+          echo "LIST_ALL"
           curl --silent --show-error --write-out "\nHTTP %{http_code}\n" "${auth[@]}" \
-            "https://api.github.com/user/packages?package_type=container"
-          echo "LIST_OWNER"
+            "https://api.github.com/user/packages?per_page=100"
+          echo "LIST_REPO_CONTAINER"
           curl --silent --show-error --write-out "\nHTTP %{http_code}\n" "${auth[@]}" \
-            "https://api.github.com/users/MIXSITI/packages?package_type=container"
-          echo "PATCH_USER"
-          curl --silent --show-error --write-out "\nHTTP %{http_code}\n" --request PATCH "${auth[@]}" \
-            --data '{"visibility":"public"}' \
-            "https://api.github.com/user/packages/container/devops-ci-app"
-          echo "PATCH_USERS"
-          curl --silent --show-error --write-out "\nHTTP %{http_code}\n" --request PATCH "${auth[@]}" \
-            --data '{"visibility":"public"}' \
-            "https://api.github.com/users/MIXSITI/packages/container/devops-ci-app"
+            "https://api.github.com/repos/${GITHUB_REPOSITORY}/packages?package_type=container"
+          for name in devops-ci-app mixsiti%2Fdevops-ci-app; do
+            echo "PATCH $name"
+            curl --silent --show-error --write-out "\nHTTP %{http_code}\n" --request PATCH "${auth[@]}" \
+              --data '{"visibility":"public"}' \
+              "https://api.github.com/user/packages/container/${name}"
+          done
+          echo "ANON"
+          curl --silent --show-error --head "https://ghcr.io/v2/mixsiti/devops-ci-app/manifests/latest" | head -n 8
           exit 0
