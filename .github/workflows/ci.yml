@@ -61,6 +61,8 @@ jobs:
       - name: Normalize image name
         run: echo "IMAGE_NAME=${IMAGE_NAME,,}" >> "$GITHUB_ENV"
       - name: Build image
+        env:
+          BUILDX_NO_DEFAULT_ATTESTATIONS: "1"
         run: docker build --tag "devops-ci-app:${GITHUB_SHA}" .
       - name: Smoke-test container
         run: |
