@@ -114,8 +114,20 @@ jobs:
         env:
           REGISTRY_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          curl --fail-with-body --silent --show-error --request PATCH \
-            --header "Authorization: Bearer ${REGISTRY_TOKEN}" \
-            --header "Accept: application/vnd.github+json" \
+          set +e
+          auth=(--header "Authorization: Bearer ${REGISTRY_TOKEN}" --header "Accept: application/vnd.github+json")
+          echo "LIST_USER"
+          curl --silent --show-error --write-out "\nHTTP %{http_code}\n" "${auth[@]}" \
+            "https://api.github.com/user/packages?package_type=container"
+          echo "LIST_OWNER"
+          curl --silent --show-error --write-out "\nHTTP %{http_code}\n" "${auth[@]}" \
+            "https://api.github.com/users/MIXSITI/packages?package_type=container"
+          echo "PATCH_USER"
+          curl --silent --show-error --write-out "\nHTTP %{http_code}\n" --request PATCH "${auth[@]}" \
             --data '{"visibility":"public"}' \
             "https://api.github.com/user/packages/container/devops-ci-app"
+          echo "PATCH_USERS"
+          curl --silent --show-error --write-out "\nHTTP %{http_code}\n" --request PATCH "${auth[@]}" \
+            --data '{"visibility":"public"}' \
+            "https://api.github.com/users/MIXSITI/packages/container/devops-ci-app"
+          exit 0
