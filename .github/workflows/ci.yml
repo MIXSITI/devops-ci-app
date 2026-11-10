@@ -109,25 +109,3 @@ jobs:
         run: |
           docker push "${IMAGE_NAME}:${GITHUB_SHA}"
           docker push "${IMAGE_NAME}:latest"
-      - name: Make study package public
-        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
-        env:
-          REGISTRY_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: |
-          set +e
-          auth=(--header "Authorization: Bearer ${REGISTRY_TOKEN}" --header "Accept: application/vnd.github+json")
-          echo "LIST_ALL"
-          curl --silent --show-error --write-out "\nHTTP %{http_code}\n" "${auth[@]}" \
-            "https://api.github.com/user/packages?per_page=100"
-          echo "LIST_REPO_CONTAINER"
-          curl --silent --show-error --write-out "\nHTTP %{http_code}\n" "${auth[@]}" \
-            "https://api.github.com/repos/${GITHUB_REPOSITORY}/packages?package_type=container"
-          for name in devops-ci-app mixsiti%2Fdevops-ci-app; do
-            echo "PATCH $name"
-            curl --silent --show-error --write-out "\nHTTP %{http_code}\n" --request PATCH "${auth[@]}" \
-              --data '{"visibility":"public"}' \
-              "https://api.github.com/user/packages/container/${name}"
-          done
-          echo "ANON"
-          curl --silent --show-error --head "https://ghcr.io/v2/mixsiti/devops-ci-app/manifests/latest" | head -n 8
-          exit 0
