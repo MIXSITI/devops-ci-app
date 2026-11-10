@@ -109,3 +109,13 @@ jobs:
         run: |
           docker push "${IMAGE_NAME}:${GITHUB_SHA}"
           docker push "${IMAGE_NAME}:latest"
+      - name: Make study package public
+        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+        env:
+          REGISTRY_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          curl --fail-with-body --silent --show-error --request PATCH \
+            --header "Authorization: Bearer ${REGISTRY_TOKEN}" \
+            --header "Accept: application/vnd.github+json" \
+            --data '{"visibility":"public"}' \
+            "https://api.github.com/user/packages/container/devops-ci-app"
